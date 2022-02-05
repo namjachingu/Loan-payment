@@ -60,5 +60,22 @@ df[["loan_status", "loan_repaid"]].head()
 missing_val = df.isnull().sum()
 missing_val_percentage = (100*df.isnull().sum())/len(df)
 
+df["emp_title"].nunique()
+df[ "emp_length"].nunique()
+
+df.drop("emp_title", axis=1, inplace=True)
+
+sorted(df['emp_length'].dropna().unique())
+sorted_emp = ['< 1 year', '1 year','2 years','3 years','4 years','5 years','6 years','7 years','8 years','9 years','10+ years']
+plt.figure(figsize=(20, 12))
+sns.countplot(x="emp_length", data=df, order=sorted_emp)
+
+plt.figure(figsize=(20,12))
+sns.countplot(x="emp_length", data=df, order=sorted_emp, hue="loan_status", palette="winter")
+
+#Checking in percentage how many people did not pay back their loan with regards to employment years.
+charged_off = df[df['loan_status'] == "Charged Off"].groupby("emp_length").count()['loan_status']
+fully_paid = df[df['loan_status'] == "Fully Paid"].groupby("emp_length").count()['loan_status']
+employment_length = charged_off/fully_paid
 
 
