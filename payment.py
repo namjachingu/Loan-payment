@@ -79,3 +79,4 @@ fully_paid = df[df['loan_status'] == "Fully Paid"].groupby("emp_length").count()
 employment_length = charged_off/fully_paid
 
 
+
