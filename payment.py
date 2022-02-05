@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-%matplotlib inline
 
 df = pd.read_csv("../data/lending_club_loan_two.csv")
 
+### Examining data and attributes ###
 df.info()
 
 sns.countplot(x="loan_status", data=df)
@@ -29,6 +29,36 @@ df.groupby('loan_status')['loan_amnt'].describe()
 
 #Countplot per grade
 sns.countplot(sorted(df["grade"]), data=df, hue="loan_status")
+
+
+#Display countplot of subgrades, by all loans and then separated based on loan status.
+plt.figure(figsize=(20,12))
+sns.countplot(x=sorted(df['sub_grade']), data=df, palette="summer")
+
+plt.figure(figsize=(20,12))
+sns.countplot(x=sorted(df['sub_grade']), data=df, hue="loan_status", palette="summer")
+
+df_2 = df[(df['grade'] == "F") | (df['grade'] == "G")]
+
+#F and G subgrades do not pay back that often, hence exploring those features:
+plt.figure(figsize=(20,12))
+sub_order = sorted(df_2["sub_grade"].unique())
+sns.countplot(x="sub_grade", data=df_2, order=sub_order, hue="loan_status", palette="summer")
+
+#Adding new column, loan repaid, where if loan status is fully repaid it will return 1 and 0 otherwise. 
+def repaid(status):
+    if status.lower() == "fully paid":
+        return 1
+    else:
+        return 0
+ 
+df["loan_repaid"] = df["loan_status"].apply(repaid)
+df[["loan_status", "loan_repaid"]].head()
+
+
+### Data preprocessing ###
+missing_val = df.isnull().sum()
+missing_val_percentage = (100*df.isnull().sum())/len(df)
 
 
 
