@@ -161,6 +161,16 @@ scaler.transform(X_test)
 
 ### Creating model ### 
 model = Sequential()
-model.add(
+model.add(Dense(units=78,activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(units=39,activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(units=19,activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(units=1,activation='sigmoid'))
+model.compile(loss='binary_crossentropy', optimizer='adam')
 
 
