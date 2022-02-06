@@ -12,6 +12,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.models import load_model
 
+import random
+random.seed(101)
+
 df = pd.read_csv("lending_club_loan_two.csv")
 
 ### Examining data and attributes ###
@@ -187,6 +190,17 @@ model.save('loan_model.h5')
 ### Evaluate performance of model ###
 losses = pd.DataFrame(model.history.history)
 losses[['loss','val_loss']].plot()
+
+predictions = (model.predict(X_test) > 0.5).astype("int32")
+confusion_matrix(y_test, predictions)
+classification_report(y_test,predictions)
+
+# Predict on new costumer
+random_index = random.randint(0,len(df))
+new_customer = df.drop('loan_repaid',axis=1).iloc[random_index]
+new_customer = scaler.transform(new_customer.values.reshape(1,78))
+(model.predict(new_customer) > 0.5).astype("int32")
+df.iloc[random_index]["loan_repaid"]
 
 
 
