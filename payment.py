@@ -12,7 +12,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.models import load_model
 
-df = pd.read_csv("../data/lending_club_loan_two.csv")
+df = pd.read_csv("lending_club_loan_two.csv")
 
 ### Examining data and attributes ###
 df.info()
