@@ -201,8 +201,3 @@ new_customer = df.drop('loan_repaid',axis=1).iloc[random_index]
 new_customer = scaler.transform(new_customer.values.reshape(1,78))
 (model.predict(new_customer) > 0.5).astype("int32")
 df.iloc[random_index]["loan_repaid"]
-
-
-
-
-
