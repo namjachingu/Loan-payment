@@ -3,6 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense,Dropout
+
 df = pd.read_csv("../data/lending_club_loan_two.csv")
 
 ### Examining data and attributes ###
@@ -73,10 +80,87 @@ sns.countplot(x="emp_length", data=df, order=sorted_emp)
 plt.figure(figsize=(20,12))
 sns.countplot(x="emp_length", data=df, order=sorted_emp, hue="loan_status", palette="winter")
 
-#Checking in percentage how many people did not pay back their loan with regards to employment years.
+# Checking in percentage how many people did not pay back their loan with regards to employment years.
 charged_off = df[df['loan_status'] == "Charged Off"].groupby("emp_length").count()['loan_status']
 fully_paid = df[df['loan_status'] == "Fully Paid"].groupby("emp_length").count()['loan_status']
 employment_length = charged_off/fully_paid
 
+df.drop(["emp_length", "title"], axis=1, inplace=True)
+
+# Filling in empty slots with mean of total number of credit lines currrently in the borrower's credit file
+df["mort_acc"].value_counts()
+acc_avg = df.groupby("total_acc").mean()["mort_acc"]
+
+def fill_na(total_acc,mort_acc):
+    if np.isnan(mort_acc):
+        return acc_avg[total_acc]
+    else:
+        return mort_acc
+
+df['mort_acc'] = df.apply(lambda x: fill_na(x['total_acc'], x['mort_acc']), axis=1)
+
+df = df.dropna()
+
+# Convert objects to integers
+def converter(term):
+    term = term.split()
+    if term[0] == "36":
+        return 36
+    else:
+        return 60
+    
+df["term"] = df["term"].apply(converter)
+
+df.drop(["grade", "issue_d"], axis=1, inplace=True)
+
+features_int = pd.get_dummies(df[['sub_grade', 'verification_status', 'application_type','initial_list_status','purpose' ]],drop_first=True)
+df = df.drop(['sub_grade', 'verification_status', 'application_type','initial_list_status','purpose'],axis=1)
+df = pd.concat([df,features_int],axis=1)
+
+# Convert and replace object values
+df['home_ownership'] = df['home_ownership'].replace(['NONE', 'ANY'], 'OTHER')
+home_ownership_int = pd.get_dummies(df["home_ownership"], drop_first=True)
+df = df.drop('home_ownership',axis=1)
+df = pd.concat([df, home_ownership_int],axis=1)
+
+# Creating zip column from address
+def zip_extract(address):
+    zip = address.split()[-1]
+    return zip
+
+df["zip_code"] = df["address"].apply(zip_extract)
+
+zip_code_int = pd.get_dummies(df["zip_code"], drop_first=True)
+df.drop(["zip_code", "address"], axis=1, inplace=True)
+df = pd.concat([df, zip_code_int], axis=1)
+
+
+def convertInt(time):
+    time = time.split("-")
+    return time[1]
+
+df["earliest_cr_line"] = df["earliest_cr_line"].apply(convertInt)
+
+
+### Train test split ###
+
+df.drop("loan_status", axis=1, inplace=True)
+
+X = df.drop('loan_repaid',axis=1).values
+y = df['loan_repaid'].values
+
+# Grabbing a fraction of the entries to save time and compute on training.
+df = df.sample(frac=0.1,random_state=101)
+print(len(df))
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = MinMaxScaler()
+scaler.fit_transform(X_train)
+scaler.transform(X_test)
+
+### Creating model ### 
+model = Sequential()
+model.add(
 
 
