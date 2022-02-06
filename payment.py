@@ -5,10 +5,12 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import classification_report,confusion_matrix
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Dropout
+from tensorflow.keras.models import load_model
 
 df = pd.read_csv("../data/lending_club_loan_two.csv")
 
@@ -137,7 +139,8 @@ df = pd.concat([df, zip_code_int], axis=1)
 
 def convertInt(time):
     time = time.split("-")
-    return time[1]
+    year = int(time[1])
+    return year
 
 df["earliest_cr_line"] = df["earliest_cr_line"].apply(convertInt)
 
@@ -156,21 +159,36 @@ print(len(df))
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 scaler = MinMaxScaler()
-scaler.fit_transform(X_train)
-scaler.transform(X_test)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
 
 ### Creating model ### 
 model = Sequential()
+
 model.add(Dense(units=78,activation='relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.2))
 
 model.add(Dense(units=39,activation='relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.2))
 
 model.add(Dense(units=19,activation='relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.2))
 
 model.add(Dense(units=1,activation='sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='adam')
+
+model.fit(x=X_train, y=y_train, epochs=25, batch_size=256, validation_data=(X_test, y_test))
+
+# Save model
+model.save('loan_model.h5')  
+
+
+### Evaluate performance of model ###
+losses = pd.DataFrame(model.history.history)
+losses[['loss','val_loss']].plot()
+
+
+
 
 
